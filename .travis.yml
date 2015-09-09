@@ -4,6 +4,11 @@ compiler: gcc
 
 sudo: false
 
+# whitelist my branch
+branches:
+  only:
+    - ned
+
 addons:
   apt:
     sources:
