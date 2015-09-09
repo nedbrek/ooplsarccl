@@ -13,6 +13,7 @@
 #include <sstream>  // istringstream
 #include <string>   // getline, string
 #include <utility>  // make_pair, pair
+#include <vector>
 
 #include "Collatz.h"
 
@@ -47,6 +48,46 @@ namespace
 		assert(c >= 1);
 		return c;
 	}
+
+	class CollatzCache
+	{
+	public:
+		CollatzCache(int cacheSize = 64)
+		: oddResults_(cacheSize, 0)
+		{
+		}
+
+		int lookup(int n)
+		{
+			assert(n > 0);
+
+			// handle even cases
+			if ((n & 1) == 0)
+				return 1 + lookup(n >> 1);
+
+			// handle cached case
+			const int cache_index = n >> 1;
+			if (cache_index < (int)oddResults_.size())
+			{
+				if (oddResults_[cache_index] == 0)
+					oddResults_[cache_index] = calculate_value(n);
+
+				return oddResults_[cache_index];
+			}
+
+			// uncached case
+			return calculate_value(n);
+		}
+
+	private:
+		int calculate_value(int n)
+		{
+			// TODO: use cache in intermediate cases
+			return collatz_length(n);
+		}
+
+		std::vector<int> oddResults_; ///< results for the first few odd values
+	};
 }
 
 // ------------
