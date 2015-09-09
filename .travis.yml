@@ -37,3 +37,6 @@ before_script:
 script:
     - date
     - make test
+
+after_failure:
+    - cat TestCollatz.tmp
