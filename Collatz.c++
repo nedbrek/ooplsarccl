@@ -18,6 +18,37 @@
 
 using namespace std;
 
+namespace
+{
+	/// @return the length of the collatz cycle for 'n'
+	/// @note: only works for n > 0 && n < 1000000
+	int collatz_length(int n)
+	{
+		assert(n > 0);
+
+		int c = 1;
+		while (n > 1)
+		{
+			++c; // another round in the cycle
+
+			if ((n & 1) == 0)
+			{
+				// even - divide by 2
+				n >>= 1;
+			}
+			else
+			{
+				// odd -  n = 3n + 1
+				n = (n << 1) + n;
+				++n;
+			}
+		}
+
+		assert(c >= 1);
+		return c;
+	}
+}
+
 // ------------
 // collatz_read
 // ------------
@@ -29,13 +60,24 @@ pair<int, int> collatz_read (const string& s) {
     sin >> i >> j;
     return make_pair(i, j);}
 
-// ------------
-// collatz_eval
-// ------------
+/// @return the longest cycle length between i and j
+int collatz_eval(int i, int j)
+{
+	const int start = std::min(i, j);
+	const int end = std::max(i, j);
 
-int collatz_eval (int i, int j) {
-    // <your code>
-    return 1;}
+	int num = 0;
+	for (int n = start; n <= end; ++n)
+	{
+		const int tmp = collatz_length(n);
+		if (tmp > num)
+		{
+			num = tmp;
+		}
+	}
+
+	return num;
+}
 
 // -------------
 // collatz_print

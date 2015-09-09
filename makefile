@@ -11,6 +11,9 @@ VALGRIND   := valgrind
 all:  RunCollatz.tmp
 	rm -f RunCollatz.tmp
 
+submit.cpp: Collatz.c++ RunCollatz.c++
+	@cat $^ > $@
+
 clean:
 	rm -f *.gcda
 	rm -f *.gcno

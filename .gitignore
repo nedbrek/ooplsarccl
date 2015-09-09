@@ -5,4 +5,5 @@
 *.gcov
 /RunCollatz
 /RunCollatz.tmp
+/submit.cpp
 
