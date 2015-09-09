@@ -9,6 +9,7 @@ GPROFFLAGS := -pg
 VALGRIND   := valgrind
 
 all:  RunCollatz.tmp
+	rm -f RunCollatz.tmp
 
 clean:
 	rm -f *.gcda
