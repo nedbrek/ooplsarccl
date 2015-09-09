@@ -107,10 +107,11 @@ int collatz_eval(int i, int j)
 	const int start = std::min(i, j);
 	const int end = std::max(i, j);
 
+	CollatzCache cache;
 	int num = 0;
 	for (int n = start; n <= end; ++n)
 	{
-		const int tmp = collatz_length(n);
+		const int tmp = cache.lookup(n);
 		if (tmp > num)
 		{
 			num = tmp;
