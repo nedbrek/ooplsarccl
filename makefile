@@ -1,9 +1,10 @@
-CXX        := g++-4.8
-CXXFLAGS   := -pedantic -std=c++11 -Wall
-LDFLAGS    := -lgtest -lgtest_main -pthread
-GCOV       := gcov-4.8
+CXX        ?= g++
+CXXFLAGS   += -pedantic -Wall
+#CXXFLAGS   += -std=c++11
+LDFLAGS    += -lgtest -lgtest_main -pthread
+GCOV       ?= gcov
 GCOVFLAGS  := -fprofile-arcs -ftest-coverage
-GPROF      := gprof
+GPROF      ?= gprof
 GPROFFLAGS := -pg
 VALGRIND   := valgrind
 
