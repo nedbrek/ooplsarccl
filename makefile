@@ -8,6 +8,8 @@ GPROF      ?= gprof
 GPROFFLAGS := -pg
 VALGRIND   := valgrind
 
+all:  RunCollatz.tmp
+
 clean:
 	rm -f *.gcda
 	rm -f *.gcno
