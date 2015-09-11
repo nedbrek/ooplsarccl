@@ -20,14 +20,27 @@ bool is_palindrome(const std::string &s)
 
 std::string make_palindrome(const std::string &s)
 {
-	if (is_palindrome(s))
+	size_t e = s.length() - 1;
+	const size_t mid_point = s.length() / 2;
+	for (size_t i = 0; i < mid_point; ++i)
 	{
-		std::string ret(s);
-		const size_t m = (s.length() - 1) / 2;
-		return ret.insert(m, 1, s[m]);
+		if (s[i] != s[e])
+		{
+			std::string tmp(s);
+			tmp.insert(e+1, 1, s[i]);
+			if (is_palindrome(tmp))
+				return tmp;
+			//else
+			return "NA";
+		}
+
+		--e;
 	}
 
-	return "NA";
+	// it is a palindrome
+	std::string ret(s);
+	const size_t m = (s.length() - 1) / 2;
+	return ret.insert(m, 1, s[m]);
 }
 
 } // anon namespace
