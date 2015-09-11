@@ -31,6 +31,11 @@ std::string make_palindrome(const std::string &s)
 			if (is_palindrome(tmp))
 				return tmp;
 			//else
+			tmp = s;
+			tmp.insert(i, 1, s[e]);
+			if (is_palindrome(tmp))
+				return tmp;
+
 			return "NA";
 		}
 
