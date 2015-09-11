@@ -21,7 +21,12 @@ bool is_palindrome(const std::string &s)
 std::string make_palindrome(const std::string &s)
 {
 	if (is_palindrome(s))
-		return s;
+	{
+		std::string ret(s);
+		const size_t m = (s.length() - 1) / 2;
+		return ret.insert(m, 1, s[m]);
+	}
+
 	return "NA";
 }
 
