@@ -42,6 +42,8 @@ before_script:
 script:
     - date
     - make test
+    - cd kitayuta
+    - make test
 
 after_failure:
     - cat TestCollatz.tmp
