@@ -46,12 +46,53 @@ void findShortPath(const int endVert, const EdgeMap &edges)
 #ifdef OUTPUT
 			std::cout << "Done" << std::endl;
 #endif
+
+#ifdef OUTPUT
 			int ct = 0;
 			for (auto w : costs)
 			{
 				std::cout << ct << ' ' << w << std::endl;
 				++ct;
 			}
+#endif
+
+			std::vector<int> path;
+			auto v = endVert;
+			auto c = costs[endVert];
+			path.push_back(v);
+			while (v != 1)
+			{
+#ifdef OUTPUT
+				std::cout << "Consider " << v << std::endl;
+#endif
+				std::pair<EdgeMap::const_iterator, EdgeMap::const_iterator> r = edges.equal_range(v);
+				for (; r.first != r.second; ++r.first)
+				{
+					const int w2 = r.first->second.first;
+					const int v2 = r.first->second.second;
+#ifdef OUTPUT
+					std::cout << "Edge " << v2 << ' ' << w2 << std::endl;
+#endif
+					if (v2 == 1 || c - w2 == costs[v2])
+					{
+#ifdef OUTPUT
+						std::cout << "Next" << std::endl;
+#endif
+						v = v2;
+						c -= w2;
+						break;
+					}
+				}
+				path.push_back(v);
+			}
+
+			while (!path.empty())
+			{
+				auto v = path.back();
+				std::cout << v << ' ';
+				path.pop_back();
+			}
+			std::cout << std::endl;
 
 			return;
 		}
