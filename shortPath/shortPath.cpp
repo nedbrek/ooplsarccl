@@ -1,55 +1,67 @@
+#include <cassert>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <queue>
 #include <tuple>
 typedef std::pair<int, int> CostToVert;
 typedef std::multimap<int, CostToVert> EdgeMap;
 
-void findShortPath(const int endVert, const EdgeMap &edges)
+class ShuffleQueue : public std::priority_queue<CostToVert, std::vector<CostToVert>, std::greater<CostToVert> >
 {
+public:
+};
+
+class ShortPath
+{
+public:
+	ShortPath(int ev, const EdgeMap &e)
+	: edges(e)
+	, endVert(ev)
+	{
+		for (int i = 0; i <= endVert; ++i)
+		{
+			distance.push_back(std::numeric_limits<int>::max());
+			prev.push_back(0);
+		}
+		distance[1] = 0;
+	}
+
+	void findShortPath(const int endVert);
+
+private:
+	void printPath();
+	void removeDist(const int v)
+	{
+		decltype(distanceTo1) tmp;
+		while (!distanceTo1.empty())
+		{
+			const CostToVert t = distanceTo1.top();
+			//const int w1 = t.first;
+			const int v1 = t.second;
+			distanceTo1.pop();
+			if (v1 != v)
+				tmp.push(t);
+		}
+		distanceTo1 = tmp;
+	}
+
+	std::vector<int> distance;
+	std::vector<int> prev;
+
 	// give me the node with shortest distance from vert 1
 	// pair.first = sum of weights
 	// pair.second = vert
-	std::priority_queue<CostToVert, std::vector<CostToVert>, std::greater<CostToVert> > distanceTo1;
+	ShuffleQueue distanceTo1;
+	const EdgeMap &edges;
+	const int endVert;
+};
 
-	std::vector<int> costs(endVert+1);
-
-	// push everything connected to start (vert 1)
-	std::pair<EdgeMap::const_iterator, EdgeMap::const_iterator> r = edges.equal_range(1);
-	for (; r.first != r.second; ++r.first)
-	{
-		const int w2 = r.first->second.first;
-		const int v2 = r.first->second.second;
-#ifdef OUTPUT
-		std::cout << "Start: " << w2 << ' ' << v2 << std::endl;
-#endif
-		if (costs[v2] == 0)
-			costs[v2] = w2;
-		else
-			costs[v2] = std::min(costs[v2], w2);
-
-		distanceTo1.push(r.first->second);
-	}
-
-	while (!distanceTo1.empty())
-	{
-		const CostToVert t = distanceTo1.top();
-		distanceTo1.pop();
-
-		const int w1 = t.first;
-		const int v1 = t.second;
-#ifdef OUTPUT
-		std::cout << "Loop: " << w1 << ' ' << v1 << std::endl;
-#endif
-		if (v1 == endVert)
-		{
-#ifdef OUTPUT
-			std::cout << "Done" << std::endl;
-#endif
-
+void ShortPath::printPath()
+{
 #ifdef OUTPUT
 			int ct = 0;
-			for (auto w : costs)
+			for (auto w : distance)
 			{
 				std::cout << ct << ' ' << w << std::endl;
 				++ct;
@@ -58,31 +70,10 @@ void findShortPath(const int endVert, const EdgeMap &edges)
 
 			std::vector<int> path;
 			auto v = endVert;
-			auto c = costs[endVert];
 			path.push_back(v);
 			while (v != 1)
 			{
-#ifdef OUTPUT
-				std::cout << "Consider " << v << std::endl;
-#endif
-				std::pair<EdgeMap::const_iterator, EdgeMap::const_iterator> r = edges.equal_range(v);
-				for (; r.first != r.second; ++r.first)
-				{
-					const int w2 = r.first->second.first;
-					const int v2 = r.first->second.second;
-#ifdef OUTPUT
-					std::cout << "Edge " << v2 << ' ' << w2 << std::endl;
-#endif
-					if (v2 == 1 || c - w2 == costs[v2])
-					{
-#ifdef OUTPUT
-						std::cout << "Next" << std::endl;
-#endif
-						v = v2;
-						c -= w2;
-						break;
-					}
-				}
+				v = prev[v];
 				path.push_back(v);
 			}
 
@@ -93,35 +84,59 @@ void findShortPath(const int endVert, const EdgeMap &edges)
 				path.pop_back();
 			}
 			std::cout << std::endl;
+}
 
+void ShortPath::findShortPath(const int endVert)
+{
+	// start at the beginning
+	distanceTo1.push(std::make_pair(0, 1));
+
+	int bestPath = std::numeric_limits<int>::max();
+	while (!distanceTo1.empty())
+	{
+		const CostToVert t = distanceTo1.top();
+		const int w1 = t.first;
+		const int v1 = t.second;
+		distanceTo1.pop();
+#ifdef OUTPUT
+		std::cout << "Pop: " << w1 << ' ' << v1 << std::endl;
+#endif
+
+		if (v1 == endVert)
+		{
+			printPath();
 			return;
 		}
+		if (w1 > bestPath)
+			continue;
 
-		// push neighbors
 		std::pair<EdgeMap::const_iterator, EdgeMap::const_iterator> r = edges.equal_range(v1);
 		for (; r.first != r.second; ++r.first)
 		{
 			const int w2 = r.first->second.first + w1;
 			const int v2 = r.first->second.second;
-			if (costs[v2] != 0 && w2 >= costs[v2])
-			{
-#ifdef OUTPUT
-				std::cout << "Bail: " << w2 << ' ' << v2 << std::endl;
-#endif
+
+			if (w2 > bestPath)
 				continue;
-			}
+
+			if (w2 < distance[v2])
+			{
+				if (v2 == endVert)
+				{
+					bestPath = std::min(bestPath, w2);
+				}
 
 #ifdef OUTPUT
-			std::cout << "Push: " << w2 << ' ' << v2 << std::endl;
+				std::cout << "Loop: " << w2 << ' ' << v2 << std::endl;
 #endif
-			if (costs[v2] == 0)
-				costs[v2] = w2;
-			else
-				costs[v2] = std::min(costs[v2], w2);
-
-			distanceTo1.push(std::make_pair(w2, v2));
+				distance[v2] = w2;
+				prev[v2] = v1;
+				removeDist(v2);
+				distanceTo1.push(std::make_pair(w2, v2));
+			}
 		}
 	}
+
 	std::cout << -1 << std::endl;;
 }
 
@@ -150,7 +165,8 @@ int main(int argc, char **argv)
 			edges.insert(std::make_pair(v2, std::make_pair(w, v1)));
 		}
 
-		findShortPath(numVerts, edges);
+		ShortPath s(numVerts, edges);
+		s.findShortPath(numVerts);
 		// next round
 		std::cin >> numVerts >> numEdges;
 	}
