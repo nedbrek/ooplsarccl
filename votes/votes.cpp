@@ -129,7 +129,7 @@ private:
 		std::set<CandidateId> eliminated;
 		for (size_t i = 0; i < votes_.size(); ++i)
 		{
-			if (eliminated_.count(i) == 0 && votes_[i] == minVotes_)
+			if (votes_[i] == minVotes_ && eliminated_.count(i) == 0)
 			{
 				eliminated.insert(i);
 			}
@@ -148,7 +148,7 @@ private:
 		minVotes_ = std::numeric_limits<VoteCt>::max();
 		for (size_t i = 0; i < votes_.size(); ++i)
 		{
-			if (eliminated.count(i) > 0 || votes_[i] == 0)
+			if (votes_[i] == 0 || eliminated.count(i) > 0)
 				continue;
 
 			maxVotes_ = std::max(maxVotes_, votes_[i]);
@@ -164,8 +164,9 @@ private:
 #endif
 				eliminated_.insert(c);
 			}
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	CandidateId getNewVote(Ballot *bp)
@@ -202,11 +203,11 @@ private:
 #endif
 		votes_[cid] = 0;
 
-		VoteMap::iterator vmi = voteMap_.find(fromIndex(cid));
-		while (vmi != voteMap_.end())
+		std::pair<VoteMap::iterator, VoteMap::iterator> vmip = voteMap_.equal_range(fromIndex(cid));
+		while (vmip.first != vmip.second)
 		{
-			Ballot b = vmi->second;
-			voteMap_.erase(vmi);
+			Ballot b = vmip.first->second;
+			voteMap_.erase(vmip.first++);
 
 			const CandidateId newVote = getNewVote(&b);
 			if (newVote)
@@ -214,8 +215,6 @@ private:
 				voteMap_.insert(std::make_pair(newVote, b));
 				++votes_[makeIndex(newVote)];
 			}
-
-			vmi = voteMap_.find(fromIndex(cid));
 		}
 	}
 
