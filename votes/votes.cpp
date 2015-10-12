@@ -2,6 +2,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <set>
 #include <sstream>
 #include <vector>
 
@@ -77,21 +78,36 @@ public:
 
 			std::getline(is, tmp);
 		}
+
+		for (size_t i = 0; i < votes_.size(); ++i)
+		{
+			if (votes_[i] == 0)
+			{
+#ifdef OUTPUT
+			std::cout << "No votes for " << candidateNames_[i] << std::endl;
+#endif
+				eliminated_.insert(i);
+			}
+		}
 	}
 
 	// determine winner
 	void printWinner(std::ostream &os)
 	{
-		while (maxVotes_ < (voteMap_.size() + 1) / 2)
+		bool done = false;
+		while (!done && maxVotes_ < (voteMap_.size() + 1) / 2)
 		{
-			reduceCandidates();
+#ifdef OUTPUT
+			std::cout << "Max votes " << maxVotes_ << std::endl;
+#endif
+			done = reduceCandidates();
 		}
 
 		//foreach candidate
 		for (size_t i = 0; i < votes_.size(); ++i)
 		{
 			// if candidate has most votes
-			if (votes_[i] == maxVotes_)
+			if (votes_[i] == maxVotes_ && eliminated_.count(i) == 0)
 				os << candidateNames_[i] << std::endl;
 		}
 	}
@@ -108,12 +124,23 @@ private:
 		return vote - 1;
 	}
 
-	void reduceCandidates()
+	bool reduceCandidates()
 	{
+		std::set<CandidateId> eliminated;
 		for (size_t i = 0; i < votes_.size(); ++i)
 		{
-			if (votes_[i] == minVotes_)
-				eliminateCandidate(i);
+			if (eliminated_.count(i) == 0 && votes_[i] == minVotes_)
+			{
+				eliminated.insert(i);
+			}
+		}
+
+		if (eliminated.size() + eliminated_.size() == votes_.size())
+			return true;
+
+		for (auto c : eliminated)
+		{
+			eliminateCandidate(c);
 		}
 
 		// recalculate min and max
@@ -121,12 +148,51 @@ private:
 		minVotes_ = std::numeric_limits<VoteCt>::max();
 		for (size_t i = 0; i < votes_.size(); ++i)
 		{
-			if (votes_[i] == 0)
+			if (eliminated.count(i) > 0 || votes_[i] == 0)
 				continue;
 
 			maxVotes_ = std::max(maxVotes_, votes_[i]);
 			minVotes_ = std::min(minVotes_, votes_[i]);
 		}
+
+		if (maxVotes_ > 0)
+		{
+			for (auto c : eliminated)
+			{
+#ifdef OUTPUT
+			std::cout << "Perma-eliminate " << candidateNames_[c] << std::endl;
+#endif
+				eliminated_.insert(c);
+			}
+		}
+		return false;
+	}
+
+	CandidateId getNewVote(Ballot *bp)
+	{
+		bool done = bp->empty();
+		while (!done)
+		{
+			const CandidateId firstVote = (*bp)[0];
+			std::move(bp->begin() + 1, bp->end(), bp->begin());
+
+#ifdef OUTPUT
+			std::cout << "New vote for " << firstVote;
+#endif
+
+			if (eliminated_.count(makeIndex(firstVote)) == 0)
+			{
+#ifdef OUTPUT
+				std::cout << ". Good vote" << std::endl;
+#endif
+				return firstVote;
+			}
+#ifdef OUTPUT
+			std::cout << ". Bad vote" << std::endl;
+#endif
+		}
+
+		return 0;
 	}
 
 	void eliminateCandidate(CandidateId cid)
@@ -142,17 +208,11 @@ private:
 			Ballot b = vmi->second;
 			voteMap_.erase(vmi);
 
-			if (!b.empty())
+			const CandidateId newVote = getNewVote(&b);
+			if (newVote)
 			{
-				const CandidateId firstVote = b[0];
-#ifdef OUTPUT
-				std::cout << "New vote for " << firstVote << std::endl;
-#endif
-
-				std::move(b.begin() + 1, b.end(), b.begin());
-
-				voteMap_.insert(std::make_pair(firstVote, b));
-				++votes_[makeIndex(firstVote)];
+				voteMap_.insert(std::make_pair(newVote, b));
+				++votes_[makeIndex(newVote)];
 			}
 
 			vmi = voteMap_.find(fromIndex(cid));
@@ -160,6 +220,7 @@ private:
 	}
 
 	std::vector<std::string> candidateNames_;
+	std::set<CandidateId> eliminated_;
 	Votes votes_;
 	VoteMap voteMap_;
 	VoteCt maxVotes_ = 0;
