@@ -1,9 +1,9 @@
 all: debug.exe main.exe
 
-main.exe: votes.cpp
+main.exe: votes2.cpp
 	@g++-4.8 -o$@ -std=c++11 -Wall $^
 
-debug.exe: votes.cpp
+debug.exe: votes2.cpp
 	@g++-4.8 -o$@ -DOUTPUT -std=c++11 -Wall $^
 
 test: main.exe
