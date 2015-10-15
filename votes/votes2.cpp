@@ -145,7 +145,7 @@ private:
 	{
 		bool anySet = false;
 		bool allSame = true;
-		for (CandidateId c : remainingCandidates_)
+		for (auto c : remainingCandidates_)
 		{
 			if (!anySet)
 			{
@@ -218,7 +218,7 @@ private:
 			if (votes_[supporter].empty())
 			{
 #ifdef OUTPUT
-			std::cout << supporter << " out of votes" << std::endl;
+				std::cout << supporter << " out of votes" << std::endl;
 #endif
 				continue;
 			}
@@ -277,7 +277,7 @@ private:
 	VoteCt minVotes_ = std::numeric_limits<VoteCt>::max();
 };
 
-void doCase()
+void doCase(bool end)
 {
 	AusVote v;
 	v.getCandidates(std::cin);
@@ -286,7 +286,8 @@ void doCase()
 
 	v.printWinner(std::cout, earlyDecision);
 
-	std::cout << std::endl;
+	if (!end)
+		std::cout << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -302,7 +303,7 @@ int main(int argc, char **argv)
 
 	while (numCases)
 	{
-		doCase();
+		doCase(numCases == 1);
 
 		--numCases;
 	}
